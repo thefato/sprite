@@ -5,7 +5,7 @@ import sys
 pygame.init()
 
 # Define as dimensões da janela
-largura, altura = 800, 600
+largura, altura = 1000, 500
 tela = pygame.display.set_mode((largura, altura))
 pygame.display.set_caption("Janela com Botão")
 
@@ -36,7 +36,7 @@ def desenha_botao(tela, cor, pos, tamanho, texto):
 # Dimensões do botão
 largura_botao, altura_botao = 100, 50
 
-# Posição do botão no canto inferior direito
+# Posição do botão no centro da tela
 x_botao = (largura - largura_botao) // 2
 y_botao = (altura - altura_botao) // 2
 
@@ -49,13 +49,7 @@ ultimo_tempo = pygame.time.get_ticks()
 # Posição inicial do sprite
 pos_x = 10  # Posição inicial do sprite no eixo X
 pos_y = 10  # Posição inicial do sprite no eixo Y
-movimento = 1  # Ajuste para que a movimentação seja mais suave
-
-# Cria o rect para o sprite
-sprite_rect = pygame.Rect(pos_x, pos_y, quadro_largura, quadro_altura)
-
-# Cria o rect para o botao
-botao = pygame.Rect(x_botao, y_botao, largura_botao, altura_botao)
+movimento = 2  # Ajuste para que a movimentação seja mais suave
 
 # Loop principal
 rodando = True
@@ -67,39 +61,40 @@ while rodando:
             if botao.collidepoint(evento.pos):
                 rodando = False
 
-    # Verifica a colisão antes de mover o sprite
     # Captura os eventos de tecla
     teclas = pygame.key.get_pressed()
     if teclas[pygame.K_RIGHT]:
-        temp_rect = sprite_rect.move(movimento, 0)
-        if not temp_rect.colliderect(botao):
-            pos_x += movimento  # Movimento para a direita
-            sprite_rect.x = pos_x # atualiza a posição do rect do sprite
+        pos_x += movimento  # Movimento para a direita
     if teclas[pygame.K_LEFT]:
-        temp_rect = sprite_rect.move(-movimento, 0)
-        if not temp_rect.colliderect(botao):
-            pos_x -= movimento  # Movimento para a esquerda
-            sprite_rect.x = pos_x # atualiza a posição do rect do sprite
-    if teclas[pygame.K_UP]:
-        temp_rect = sprite_rect.move(0, -movimento)
-        if not temp_rect.colliderect(botao):
-            pos_y -= movimento  # Movimento para cima
-            sprite_rect.y = pos_y # atualiza a posição do rect do sprite
+        pos_x -= movimento  # Movimento para a esquerda
     if teclas[pygame.K_DOWN]:
-        temp_rect = sprite_rect.move(0, movimento)
-        if not temp_rect.colliderect(botao):
-            pos_y += movimento  # Movimento para baixo
-            sprite_rect.y = pos_y # atualiza a posição do rect do sprite
+        pos_y += movimento  # Movimento para baixo
+    if teclas[pygame.K_UP]:
+        pos_y -= movimento  # Movimento para cima
 
     # Mantém o sprite dentro da janela
     if pos_x < 0:
         pos_x = 0
     elif pos_x > largura - quadro_largura:
         pos_x = largura - quadro_largura
+    
     if pos_y < 0:
         pos_y = 0
     elif pos_y > altura - quadro_altura:
         pos_y = altura - quadro_altura
+    
+    # Verifica colisão com o botão e evita que o sprite se sobreponha
+    botao = pygame.Rect(x_botao, y_botao, largura_botao, altura_botao)
+    if botao.colliderect(pygame.Rect(pos_x, pos_y, quadro_largura, quadro_altura)):
+        # O sprite se aproxima do botão, então ajustamos a posição para contornar
+        if teclas[pygame.K_RIGHT]:
+            pos_x = botao.left - quadro_largura  # Coloca à esquerda do botão
+        elif teclas[pygame.K_LEFT]:
+            pos_x = botao.right  # Coloca à direita do botão
+        elif teclas[pygame.K_DOWN]:
+            pos_y = botao.top - quadro_altura  # Coloca acima do botão
+        elif teclas[pygame.K_UP]:
+            pos_y = botao.bottom  # Coloca abaixo do botão
 
     # Calcula o tempo passado desde o último quadro
     agora = pygame.time.get_ticks()
